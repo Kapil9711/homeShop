@@ -1,5 +1,8 @@
 import localFont from "next/font/local";
 import "./globals.css";
+import Header from "@/components/Header";
+import "../assests/css/bootstrap.min.css";
+import { Container } from "react-bootstrap";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -22,7 +25,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <Header />
+        <main className="py-3">
+          <Container>{children}</Container>
+        </main>
       </body>
     </html>
   );
