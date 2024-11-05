@@ -19,6 +19,7 @@ import { addToCart } from "../../../store/slices/cartSlice.js";
 import { baseUrl, uploadCartInfo } from "@/network/endpoint.js";
 import ENDPOINT from "../../../network/endpoint.js";
 import socketIOClient from "socket.io-client";
+import notify from "@/utils/notify.js";
 
 const ProductScreen = ({ params }) => {
   const { id } = use(params);
@@ -29,6 +30,8 @@ const ProductScreen = ({ params }) => {
   );
 };
 
+let res, rej;
+
 const ProductComponent = ({ id }) => {
   let [product, setProduct] = useState(null);
   const [qty, setQty] = useState(1);
@@ -38,12 +41,12 @@ const ProductComponent = ({ id }) => {
     JSON.parse(localStorage.getItem("wishList") || [])
   );
   const addToCartHandler = async () => {
+    const [res, rej] = notify();
     dispatch(addToCart({ ...product, qty }));
     const data = await uploadCartInfo({ productId: product._id, qty });
-    console.log(data);
+    if (data.success) res("Added to Cart");
+    else rej("Something went wrong");
   };
-  console.log(wishList);
-
   useEffect(() => {
     const getData = async () => {
       try {
@@ -64,12 +67,17 @@ const ProductComponent = ({ id }) => {
     socket.on("wishlist-update", (updatedWishlist) => {
       localStorage.setItem("wishList", JSON.stringify(updatedWishlist));
       setWishlist(updatedWishlist);
+      if (res.isUpdate) {
+        res("Added to WishList");
+      } else res("Removed from WishList");
     });
 
     return () => socket.disconnect();
   }, []);
 
   const handleAddProductToWishlist = () => {
+    [res, rej] = notify();
+    res.isUpdate = true;
     const user = JSON.parse(localStorage.getItem("user"));
     const socket = socketIOClient(baseUrl);
     console.log(socket);
@@ -77,6 +85,8 @@ const ProductComponent = ({ id }) => {
   };
 
   const handleRemoveProductFromWishlist = () => {
+    [res, rej] = notify();
+    res.isUpdate = false;
     console.log("removing");
     const user = JSON.parse(localStorage.getItem("user"));
     const socket = socketIOClient(baseUrl);

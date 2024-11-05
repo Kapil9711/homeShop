@@ -11,10 +11,21 @@ import cors from "cors";
 import globalErrorHandler from "./middlewares/errorMiddleware.js";
 import authRouter from "./router/authRouter.js";
 import cartRouter from "./router/cartRouter.js";
+import { Server } from "socket.io";
+import http from "http";
 import "./config/passport.js";
+import User from "./models/user.js";
 const app = express();
 dotenv.config();
 app.use(cors());
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*", // Allow all origins for simplicity
+    methods: ["GET", "POST"],
+  },
+});
 
 // setup security headers
 app.use(helmet());
@@ -45,6 +56,47 @@ app.use("/products", productRouter);
 app.use("/auth", authRouter);
 app.use("/cart", cartRouter);
 
+// Socket.IO event listeners for adding/removing from wishlist
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  // Listen for adding a product to the wishlist
+  socket.on("wishlist-add", async ({ userId, productId }) => {
+    console.log('onserver',userId,productId);
+    try {
+      const user = await User.findById(userId);
+      if (!user.wishlist.includes(productId)) {
+        user.wishlist.push(productId);
+        await user.save();
+
+        // Emit updated wishlist to all connected clients
+        io.emit("wishlist-update", user.wishlist);
+      }
+    } catch (err) {
+      console.error("Error adding to wishlist:", err);
+    }
+  });
+
+  // Listen for removing a product from the wishlist
+  socket.on("wishlist-remove", async ({ userId, productId }) => {
+    try {
+      const user = await User.findById(userId);
+      user.wishlist = user.wishlist.filter((id) => id.toString() !== productId);
+      await user.save();
+
+      // Emit updated wishlist to all connected clients
+      io.emit("wishlist-update", user.wishlist);
+    } catch (err) {
+      console.error("Error removing from wishlist:", err);
+    }
+  });
+
+  // Handle disconnect
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
+  });
+});
+
 // global error handler
 app.use(globalErrorHandler);
 
@@ -56,7 +108,7 @@ const start = async () => {
   try {
     await connectDb(process.env.MONGO_URI);
     // starting server only if connection to mongoDB successfull
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server is listening on Port ${PORT} in ${MODE} mode.`);
     });
   } catch (error) {

@@ -3,6 +3,8 @@ import "../styles/globals.css";
 import Header from "@/components/Header";
 import "../assests/css/bootstrap.min.css";
 import { Container } from "react-bootstrap";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const geistSans = localFont({
   src: "../assests/fonts/GeistVF.woff",
@@ -29,6 +31,7 @@ export default function RootLayout({ children }) {
         <main className="py-3">
           <Container>{children}</Container>
         </main>
+        <ToastContainer autoClose={1000} />
       </body>
     </html>
   );

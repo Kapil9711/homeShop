@@ -14,6 +14,7 @@ import { addToCart, removeFromCart } from "@/store/slices/cartSlice";
 import Link from "next/link";
 import ReduxProvider from "../../components/Redux-Provider";
 import { uploadCartInfo, deleteCartInfo } from "../../network/endpoint";
+import notify from "@/utils/notify";
 
 const CartScreen = () => {
   return (
@@ -29,15 +30,19 @@ const CartComponent = () => {
   const { cartItems } = cart;
 
   const addToCartHandler = async (product, qty) => {
+    const [res, rej] = notify();
     dispatch(addToCart({ ...product, qty }));
-    const data = uploadCartInfo({ productId: product._id, qty });
-    console.log(data);
+    const data = await uploadCartInfo({ productId: product._id, qty });
+    if (data.success) res("Updated Successfully");
+    else rej("Something went wrong");
   };
 
   const removeFromCartHandler = async (id) => {
+    const [res, rej] = notify();
     dispatch(removeFromCart(id));
     const data = await deleteCartInfo({ productId: id });
-    console.log(data);
+    if (data.success) res("Removed from Cart");
+    else rej("Something went wrong");
   };
 
   return (
