@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FaGoogle } from "react-icons/fa";
 import styles from "./page.module.css";
+import ENDPOINT from "@/network/endpoint";
 
 const Home = () => {
   const searchParams = useSearchParams();
@@ -12,7 +13,7 @@ const Home = () => {
   const handleLogin = () => {
     let token = localStorage.getItem("token");
     if (token) return router.push("/products");
-    window.location.href = "http://localhost:8000/auth/google";
+    window.location.href = ENDPOINT.LOGIN;
   };
   useEffect(() => {
     // Extract token and user from URL params only if they exist
@@ -23,8 +24,7 @@ const Home = () => {
     if (token && user) {
       // Store the JWT token and user info in localStorage
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-
+      localStorage.setItem("user", user);
       // Redirect to /products page
       router.push("/products");
     }

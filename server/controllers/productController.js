@@ -10,6 +10,7 @@ export const getAllProducts = catchAsyncError(async (req, res, next) => {
 
 //getSingleProduct = /api/products/:id
 export const getSingleProduct = catchAsyncError(async (req, res, next) => {
+  console.log(req.params);
   const product = await Product.findById(req.params.id);
   if (!product) {
     return next(new CustomError("Product not found", 404));

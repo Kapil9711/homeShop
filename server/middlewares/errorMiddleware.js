@@ -1,12 +1,41 @@
 import CustomError from "./../utils/customError.js";
 
-const globalErrorHandler = (err, req, res, next) => {
+const handleProductionError = (err) => {
   let message = err.message || "Internal Server Error";
   let statusCode = err.statusCode || 500;
 
-  // res in developemnt mode
+  // Handle Mongoose errors
+  if (err.name === "CastError") {
+    message = `Resource not found. Invalid: ${err.path}`;
+    statusCode = 404;
+  } else if (err.name === "ValidationError") {
+    message = Object.values(err.errors)
+      .map((value) => value.message)
+      .join(", ");
+    statusCode = 400;
+  } else if (err.code === 11000) {
+    message = `Duplicate ${Object.keys(err.keyValue)} entered`;
+    statusCode = 400;
+  } else if (err.name === "jsonWebTokenError") {
+    message = `Invalid JSON Web Token. Try again!`;
+    statusCode = 401;
+  } else if (err.name === "TokenExpiredError") {
+    message = `JSON Web Token has expired. Try again!`;
+    statusCode = 401;
+  }
+
+  // Return the processed error
+  return new CustomError(message, statusCode);
+};
+
+const globalErrorHandler = (err, req, res, next) => {
+  let responseError = err;
+  let message = err.message || "Internal Server Error";
+  let statusCode = err.statusCode || 500;
+
+  // Development environment - detailed error info
   if (process.env.NODE_ENV === "development") {
-    res.status(statusCode).json({
+    return res.status(statusCode).json({
       success: false,
       message,
       error: err,
@@ -14,44 +43,21 @@ const globalErrorHandler = (err, req, res, next) => {
     });
   }
 
-  // res in production mode
-
+  // Production environment - clean error message
   if (process.env.NODE_ENV === "production") {
-    let copyError = { ...err };
+    responseError = handleProductionError(err);
 
-    // wrong mongoose object id error
-    if (copyError.name === "CastError") {
-      message = `Resource not found. Invalid : ${copyError.path}`;
-      copyError = new CustomError(message, 404);
-    }
-    //Handling mongoose validation error
-    if ((copyError.name = "ValidationError")) {
-      message = Object.values(copyError.errors).map((value) => value.message);
-      copyError = new CustomError(message, 400);
-    }
-
-    // handle mongoose duplicate key error
-    if (copyError.code === 11000) {
-      message = `Duplicate ${Object.keys(err.keyValue)} entered`;
-      copyError = new CustomError(message, 400);
-    }
-
-    //handling wrong jwt token error
-    if (copyError.name === "jsonWebTokenError") {
-      message = `JSON Web token is invalid. Try Again!`;
-      copyError = new CustomError(message, 500);
-    }
-    // handling Expired jwt token error
-    if (copyError.name === "TokenExpiredError") {
-      message = `Json web token is expired. Try Again!`;
-      copyError = new CustomError(message, 500);
-    }
-
-    res.status(copyError.statusCode).json({
+    return res.status(responseError.statusCode).json({
       success: false,
-      message: copyError.message || "Internal Server Error",
+      message: responseError.message,
     });
   }
+
+  // In case of unhandled environment case
+  return res.status(500).json({
+    success: false,
+    message: "An unexpected error occurred!",
+  });
 };
 
 export default globalErrorHandler;

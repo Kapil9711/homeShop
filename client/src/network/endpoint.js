@@ -1,4 +1,4 @@
-let baseUrl = "http://localhost/8000";
+let baseUrl = "http://localhost:8000";
 
 const ENDPOINT = {
   LOGIN: `${baseUrl}/auth/google`,

@@ -9,6 +9,8 @@ import session from "express-session";
 import productRouter from "./router/productRouter.js";
 import cors from "cors";
 import globalErrorHandler from "./middlewares/errorMiddleware.js";
+import authRouter from "./router/authRouter.js";
+import "./config/passport.js";
 const app = express();
 dotenv.config();
 app.use(cors());
@@ -24,10 +26,6 @@ app.use(mongoSatitize());
 // prevent parameter pollution
 app.use(hpp());
 
-// Initialize Passport
-app.use(passport.initialize());
-app.use(passport.session());
-
 // Middleware for session management
 app.use(
   session({
@@ -37,9 +35,13 @@ app.use(
     cookie: { secure: false }, // Set to true if using HTTPS
   })
 );
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // endpoints
-app.use("/api/products", productRouter);
+app.use("/products", productRouter);
+app.use("/auth", authRouter);
 
 // global error handler
 app.use(globalErrorHandler);

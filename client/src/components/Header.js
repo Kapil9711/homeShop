@@ -2,10 +2,15 @@
 import { Navbar, Nav, Container, NavDropdown, Badge } from "react-bootstrap";
 import { FaShoppingCart, FaUser } from "react-icons/fa";
 import Link from "next/link";
+import { useState } from "react";
 
 const Header = () => {
-  let userInfo = "";
-  let cartItems = [2];
+  const [userInfo, setUserInfo] = useState(
+    JSON.parse(localStorage.getItem("user"))
+  );
+
+  const cartItems = [1];
+  console.log(userInfo, userInfo?.name);
   return (
     <header>
       <Navbar bg="dark" variant="dark" expand="lg" collapseOnSelect>
@@ -35,7 +40,7 @@ const Header = () => {
                     </Nav.Link>
                   </Container>
 
-                  <NavDropdown title={userInfo.name} id="username">
+                  <NavDropdown title={userInfo["name"]} id="username">
                     <NavDropdown.Item>Logout</NavDropdown.Item>
                   </NavDropdown>
                 </Nav>
