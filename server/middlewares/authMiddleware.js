@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 export const Authenticate = catchAsyncError(async (req, res, next) => {
   let token;
   token = req.headers.authorization?.split(" ")[1];
-  console.log(token);
   if (!token) {
     res.status(401);
     throw new Error("Authentication failed, Token is required");
@@ -13,10 +12,9 @@ export const Authenticate = catchAsyncError(async (req, res, next) => {
 
   try {
     const decode = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decode.userId);
+    req.user = await User.findById(decode.id);
     next();
   } catch (error) {
-    console.log(error);
     res.status(401);
     throw new Error("Authentication failed token failed");
   }

@@ -13,6 +13,7 @@ import { FaTrash } from "react-icons/fa";
 import { addToCart, removeFromCart } from "@/store/slices/cartSlice";
 import Link from "next/link";
 import ReduxProvider from "../../components/Redux-Provider";
+import { uploadCartInfo, deleteCartInfo } from "../../network/endpoint";
 
 const CartScreen = () => {
   return (
@@ -23,17 +24,20 @@ const CartScreen = () => {
 };
 
 const CartComponent = () => {
-  // const navigate = useNavigate();
   const dispatch = useDispatch();
   const cart = useSelector((state) => state.cart);
   const { cartItems } = cart;
 
   const addToCartHandler = async (product, qty) => {
     dispatch(addToCart({ ...product, qty }));
+    const data = uploadCartInfo({ productId: product._id, qty });
+    console.log(data);
   };
 
-  const removeFromCartHandler = (id) => {
+  const removeFromCartHandler = async (id) => {
     dispatch(removeFromCart(id));
+    const data = await deleteCartInfo({ productId: id });
+    console.log(data);
   };
 
   return (
@@ -42,7 +46,7 @@ const CartComponent = () => {
         <h1 style={{ marginBottom: "20px" }}>Shopping Cart</h1>
         {cartItems.length === 0 ? (
           <h1>
-            Your cart is empty <Link href="/">Go Back</Link>
+            Your cart is empty <Link href="/products">Go Back</Link>
           </h1>
         ) : (
           <ListGroup variant="flush">

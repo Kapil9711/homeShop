@@ -10,6 +10,7 @@ import productRouter from "./router/productRouter.js";
 import cors from "cors";
 import globalErrorHandler from "./middlewares/errorMiddleware.js";
 import authRouter from "./router/authRouter.js";
+import cartRouter from "./router/cartRouter.js";
 import "./config/passport.js";
 const app = express();
 dotenv.config();
@@ -42,6 +43,7 @@ app.use(passport.session());
 // endpoints
 app.use("/products", productRouter);
 app.use("/auth", authRouter);
+app.use("/cart", cartRouter);
 
 // global error handler
 app.use(globalErrorHandler);

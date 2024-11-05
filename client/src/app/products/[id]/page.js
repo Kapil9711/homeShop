@@ -16,6 +16,8 @@ import { useRouter } from "next/router";
 import ReduxProvider from "@/components/Redux-Provider.js";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../../../store/slices/cartSlice.js";
+import { uploadCartInfo } from "@/network/endpoint.js";
+import ENDPOINT from "../../../network/endpoint.js";
 
 const ProductScreen = ({ params }) => {
   const { id } = use(params);
@@ -29,30 +31,29 @@ const ProductScreen = ({ params }) => {
 const ProductComponent = ({ id }) => {
   let [product, setProduct] = useState(null);
   const [qty, setQty] = useState(1);
-  const token = localStorage.getItem("token");
   const dispatch = useDispatch();
+  const token = localStorage.getItem("token");
 
-  const addToCartHandler = () => {
+  const addToCartHandler = async () => {
     dispatch(addToCart({ ...product, qty }));
+    const data = await uploadCartInfo({ productId: product._id, qty });
+    console.log(data);
   };
 
   useEffect(() => {
     const getData = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/products/${id}`, {
+        const res = await fetch(`${ENDPOINT.GETPRODUCTS}/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
           const data = await res.json();
-          console.log(data);
           setProduct(data);
         }
       } catch (err) {}
     };
     getData();
   }, []);
-
-  console.log(product);
 
   // Loading state will be handled automatically for async fetching
   if (!product) {

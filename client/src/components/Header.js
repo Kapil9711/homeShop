@@ -19,8 +19,6 @@ const HeaderComponent = () => {
     JSON.parse(localStorage.getItem("user"))
   );
   const { cartItems } = useSelector((state) => state.cart);
-  console.log(cartItems);
-  console.log(userInfo, userInfo?.name);
   return (
     <header>
       <Navbar bg="dark" variant="dark" expand="lg" collapseOnSelect>
