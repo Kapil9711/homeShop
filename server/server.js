@@ -1,5 +1,6 @@
 import express from "express";
 import connectDb from "./config/db.js";
+import passport from "passport";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import hpp from "hpp";
@@ -22,6 +23,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(mongoSatitize());
 // prevent parameter pollution
 app.use(hpp());
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Middleware for session management
 app.use(
