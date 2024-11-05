@@ -21,22 +21,19 @@ const ProductScreen = ({ params }) => {
   const { id } = use(params);
   return (
     <ReduxProvider>
-      <Component id={id} />
+      <ProductComponent id={id} />
     </ReduxProvider>
   );
 };
 
-const Component = ({ id }) => {
-  console.log(id);
+const ProductComponent = ({ id }) => {
   let [product, setProduct] = useState(null);
   const [qty, setQty] = useState(1);
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
-  // const router = useRouter();
 
   const addToCartHandler = () => {
     dispatch(addToCart({ ...product, qty }));
-    // router.push("/cart");
   };
 
   useEffect(() => {
@@ -129,14 +126,16 @@ const Component = ({ id }) => {
               )}
 
               <ListGroup.Item>
-                <Button
-                  className="btn-block"
-                  type="button"
-                  disabled={product.countInStock === 0}
-                  onClick={addToCartHandler}
-                >
-                  Add To Cart
-                </Button>
+                <Link style={{ color: "white" }} href={"/cart"}>
+                  <Button
+                    className="btn-block"
+                    type="button"
+                    disabled={product.countInStock === 0}
+                    onClick={addToCartHandler}
+                  >
+                    Add To Cart
+                  </Button>
+                </Link>
               </ListGroup.Item>
             </ListGroup>
           </Card>
