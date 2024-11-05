@@ -12,12 +12,33 @@ import {
 import Rating from "@/components/Rating.js";
 import Loading from "../loading.js";
 import { useEffect, useState, use } from "react";
+import { useRouter } from "next/router";
+import ReduxProvider from "@/components/Redux-Provider.js";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../../../store/slices/cartSlice.js";
 
 const ProductScreen = ({ params }) => {
   const { id } = use(params);
+  return (
+    <ReduxProvider>
+      <Component id={id} />
+    </ReduxProvider>
+  );
+};
+
+const Component = ({ id }) => {
+  console.log(id);
   let [product, setProduct] = useState(null);
   const [qty, setQty] = useState(1);
   const token = localStorage.getItem("token");
+  const dispatch = useDispatch();
+  // const router = useRouter();
+
+  const addToCartHandler = () => {
+    dispatch(addToCart({ ...product, qty }));
+    // router.push("/cart");
+  };
+
   useEffect(() => {
     const getData = async () => {
       try {
@@ -112,7 +133,7 @@ const ProductScreen = ({ params }) => {
                   className="btn-block"
                   type="button"
                   disabled={product.countInStock === 0}
-                  // onClick={addToCartHandler}
+                  onClick={addToCartHandler}
                 >
                   Add To Cart
                 </Button>
