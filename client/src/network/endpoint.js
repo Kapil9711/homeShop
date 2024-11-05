@@ -1,5 +1,5 @@
 import request from "./request.js";
-let baseUrl = "http://localhost:8000";
+export let baseUrl = "http://localhost:8000";
 
 const ENDPOINT = {
   LOGIN: `${baseUrl}/auth/google`,

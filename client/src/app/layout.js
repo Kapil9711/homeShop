@@ -1,16 +1,16 @@
 import localFont from "next/font/local";
-import "./globals.css";
+import "../styles/globals.css";
 import Header from "@/components/Header";
 import "../assests/css/bootstrap.min.css";
 import { Container } from "react-bootstrap";
 
 const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
+  src: "../assests/fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
 });
 const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
+  src: "../assests/fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
 });

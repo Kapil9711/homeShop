@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FaGoogle } from "react-icons/fa";
-import styles from "./page.module.css";
+import styles from "../styles/homePage.module.css";
 import ENDPOINT from "@/network/endpoint";
 
 const Home = () => {
@@ -16,8 +16,6 @@ const Home = () => {
     window.location.href = ENDPOINT.LOGIN;
   };
   useEffect(() => {
-    // Extract token and user from URL params only if they exist
-
     const token = searchParams.get("token");
     const user = searchParams.get("user");
 

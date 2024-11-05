@@ -16,8 +16,9 @@ import { useRouter } from "next/router";
 import ReduxProvider from "@/components/Redux-Provider.js";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../../../store/slices/cartSlice.js";
-import { uploadCartInfo } from "@/network/endpoint.js";
+import { baseUrl, uploadCartInfo } from "@/network/endpoint.js";
 import ENDPOINT from "../../../network/endpoint.js";
+import socketIOClient from "socket.io-client";
 
 const ProductScreen = ({ params }) => {
   const { id } = use(params);
@@ -33,12 +34,15 @@ const ProductComponent = ({ id }) => {
   const [qty, setQty] = useState(1);
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
-
+  const [wishList, setWishlist] = useState(
+    JSON.parse(localStorage.getItem("wishList") || [])
+  );
   const addToCartHandler = async () => {
     dispatch(addToCart({ ...product, qty }));
     const data = await uploadCartInfo({ productId: product._id, qty });
     console.log(data);
   };
+  console.log(wishList);
 
   useEffect(() => {
     const getData = async () => {
@@ -53,7 +57,34 @@ const ProductComponent = ({ id }) => {
       } catch (err) {}
     };
     getData();
+    // Connect to Socket.IO server
+    const socket = socketIOClient(baseUrl);
+
+    // Listen for wishlist updates from server
+    socket.on("wishlist-update", (updatedWishlist) => {
+      localStorage.setItem("wishList", JSON.stringify(updatedWishlist));
+      setWishlist(updatedWishlist);
+    });
+
+    return () => socket.disconnect();
   }, []);
+
+  const handleAddProductToWishlist = () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const socket = socketIOClient(baseUrl);
+    console.log(socket);
+    socket.emit("wishlist-add", { userId: user._id, productId: product._id });
+  };
+
+  const handleRemoveProductFromWishlist = () => {
+    console.log("removing");
+    const user = JSON.parse(localStorage.getItem("user"));
+    const socket = socketIOClient(baseUrl);
+    socket.emit("wishlist-remove", {
+      userId: user._id,
+      productId: product._id,
+    });
+  };
 
   // Loading state will be handled automatically for async fetching
   if (!product) {
@@ -137,6 +168,25 @@ const ProductComponent = ({ id }) => {
                     Add To Cart
                   </Button>
                 </Link>
+
+                <Button
+                  style={{
+                    marginLeft: "1rem",
+                    background: wishList.includes(product._id)
+                      ? "orange"
+                      : "blue",
+                  }}
+                  className="btn-block"
+                  type="button"
+                  disabled={product.countInStock === 0}
+                  onClick={
+                    wishList.includes(product._id)
+                      ? handleRemoveProductFromWishlist
+                      : handleAddProductToWishlist
+                  }
+                >
+                  Wishlist
+                </Button>
               </ListGroup.Item>
             </ListGroup>
           </Card>
