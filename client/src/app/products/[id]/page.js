@@ -20,13 +20,16 @@ import { baseUrl, uploadCartInfo } from "@/network/endpoint.js";
 import ENDPOINT from "../../../network/endpoint.js";
 import socketIOClient from "socket.io-client";
 import notify from "@/utils/notify.js";
+import PrivateRoute from "@/components/PrivateRoute.js";
 
 const ProductScreen = ({ params }) => {
   const { id } = use(params);
   return (
-    <ReduxProvider>
-      <ProductComponent id={id} />
-    </ReduxProvider>
+    <PrivateRoute>
+      <ReduxProvider>
+        <ProductComponent id={id} />
+      </ReduxProvider>
+    </PrivateRoute>
   );
 };
 
@@ -40,13 +43,7 @@ const ProductComponent = ({ id }) => {
   const [wishList, setWishlist] = useState(
     JSON.parse(localStorage.getItem("wishList") || [])
   );
-  const addToCartHandler = async () => {
-    const [res, rej] = notify();
-    dispatch(addToCart({ ...product, qty }));
-    const data = await uploadCartInfo({ productId: product._id, qty });
-    if (data.success) res("Added to Cart");
-    else rej("Something went wrong");
-  };
+
   useEffect(() => {
     const getData = async () => {
       try {
@@ -74,7 +71,16 @@ const ProductComponent = ({ id }) => {
 
     return () => socket.disconnect();
   }, []);
+  // Add product to cart handler
+  const addToCartHandler = async () => {
+    const [res, rej] = notify();
+    dispatch(addToCart({ ...product, qty }));
+    const data = await uploadCartInfo({ productId: product._id, qty });
+    if (data.success) res("Added to Cart");
+    else rej("Something went wrong");
+  };
 
+  // add product to wish list
   const handleAddProductToWishlist = () => {
     [res, rej] = notify();
     res.isUpdate = true;
@@ -83,7 +89,7 @@ const ProductComponent = ({ id }) => {
     console.log(socket);
     socket.emit("wishlist-add", { userId: user._id, productId: product._id });
   };
-
+  // remove product from wish list
   const handleRemoveProductFromWishlist = () => {
     [res, rej] = notify();
     res.isUpdate = false;

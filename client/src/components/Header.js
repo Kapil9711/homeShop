@@ -1,14 +1,14 @@
-"use client"; // Ensure this is a client-side component
+"use client"; // Ensures this is a client-side component
 
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { Navbar, Nav, Container, NavDropdown, Badge } from "react-bootstrap";
 import { FaShoppingCart } from "react-icons/fa";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 import ReduxProvider from "./Redux-Provider";
 import ENDPOINT from "@/network/endpoint";
 import notify from "@/utils/notify";
-import { useRouter } from "next/navigation";
 
 const Header = () => {
   return (
@@ -19,66 +19,62 @@ const Header = () => {
 };
 
 const HeaderComponent = () => {
-  const [userInfo, setUserInfo] = useState(null); // User info state
+  const [userInfo, setUserInfo] = useState(null);
   const { cartItems } = useSelector((state) => state.cart);
   const router = useRouter();
 
+  // Fetch user information from localStorage on component mount
   useEffect(() => {
     setTimeout(() => {
-      if (localStorage.getItem("user")) {
-        const user = JSON.parse(localStorage.getItem("user"));
-        setUserInfo(user);
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setUserInfo(JSON.parse(storedUser));
       }
-    }, 100);
+    }, 1000);
   }, []);
 
-  // Handle logout and routing
+  // Handle user logout and redirect
   const handleLogout = async () => {
     const [res, rej] = notify();
-    localStorage.setItem("user", "");
-    localStorage.setItem("token", "");
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     await fetch(ENDPOINT.LOGOUT);
-    res("Logout Successfully");
+    res("Logout Successful");
     setUserInfo(null);
     router.push("/");
   };
+
+  // Calculate total quantity in cart
+  const totalCartQuantity = cartItems.reduce(
+    (total, item) => total + Number(item.qty),
+    0
+  );
 
   return (
     <header>
       <Navbar bg="dark" variant="dark" expand="lg" collapseOnSelect>
         <Container>
           <Navbar.Brand>HomeShop</Navbar.Brand>
-          {userInfo ? (
+
+          {userInfo && (
             <>
               <Navbar.Toggle aria-controls="basic-navbar-nav" />
               <Navbar.Collapse id="basic-navbar-nav">
                 <Nav className="ms-auto">
-                  <Container>
-                    <Nav.Link>
-                      <Link style={{ textDecoration: "none" }} href="/cart">
-                        <span
-                          style={{
-                            display: "flex",
-                            gap: "4px",
-                            alignItems: "center",
-                          }}
-                        >
-                          <FaShoppingCart /> Cart
-                          {cartItems.length > 0 && (
-                            <Badge
-                              pill
-                              bg="success"
-                              style={{ marginLeft: "5px" }}
-                            >
-                              {cartItems.reduce((a, c) => a + Number(c.qty), 0)}
-                            </Badge>
-                          )}
-                        </span>
-                      </Link>
-                    </Nav.Link>
-                  </Container>
+                  <Nav.Link as="div">
+                    <Link href="/cart" passHref>
+                      <span style={styles.cartLink}>
+                        <FaShoppingCart /> Cart
+                        {totalCartQuantity > 0 && (
+                          <Badge pill bg="success" style={styles.badge}>
+                            {totalCartQuantity}
+                          </Badge>
+                        )}
+                      </span>
+                    </Link>
+                  </Nav.Link>
 
-                  <NavDropdown title={userInfo["name"]} id="username">
+                  <NavDropdown title={userInfo.name} id="username">
                     <NavDropdown.Item onClick={handleLogout}>
                       Logout
                     </NavDropdown.Item>
@@ -86,13 +82,23 @@ const HeaderComponent = () => {
                 </Nav>
               </Navbar.Collapse>
             </>
-          ) : (
-            ""
           )}
         </Container>
       </Navbar>
     </header>
   );
+};
+
+const styles = {
+  cartLink: {
+    textDecoration: "none",
+    display: "flex",
+    gap: "4px",
+    alignItems: "center",
+  },
+  badge: {
+    marginLeft: "5px",
+  },
 };
 
 export default Header;

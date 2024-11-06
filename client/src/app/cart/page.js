@@ -15,12 +15,15 @@ import Link from "next/link";
 import ReduxProvider from "../../components/Redux-Provider";
 import { uploadCartInfo, deleteCartInfo } from "../../network/endpoint";
 import notify from "@/utils/notify";
+import PrivateRoute from "@/components/PrivateRoute";
 
 const CartScreen = () => {
   return (
-    <ReduxProvider>
-      <CartComponent />
-    </ReduxProvider>
+    <PrivateRoute>
+      <ReduxProvider>
+        <CartComponent />
+      </ReduxProvider>
+    </PrivateRoute>
   );
 };
 
@@ -29,6 +32,7 @@ const CartComponent = () => {
   const cart = useSelector((state) => state.cart);
   const { cartItems } = cart;
 
+  // add to cart
   const addToCartHandler = async (product, qty) => {
     const [res, rej] = notify();
     dispatch(addToCart({ ...product, qty }));
@@ -37,6 +41,7 @@ const CartComponent = () => {
     else rej("Something went wrong");
   };
 
+  // remove from cart
   const removeFromCartHandler = async (id) => {
     const [res, rej] = notify();
     dispatch(removeFromCart(id));
