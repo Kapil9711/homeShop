@@ -2,18 +2,21 @@ import catchAsyncError from "../middlewares/catchAsyncError.js";
 import Product from "../models/product.js";
 import CustomError from "../utils/customError.js";
 
-// getAllProducts = /api/products ->get
-export const getAllProducts = catchAsyncError(async (req, res, next) => {
+// Handler to get all products
+export const getAllProducts = catchAsyncError(async (req, res) => {
   const products = await Product.find({});
   res.status(200).json(products);
 });
 
-//getSingleProduct = /api/products/:id
+// Handler to get a single product by ID
 export const getSingleProduct = catchAsyncError(async (req, res, next) => {
-  console.log(req.params);
-  const product = await Product.findById(req.params.id);
+  const { id } = req.params;
+  const product = await Product.findById(id);
+
+  // If product not found, return a 404 error with a custom message
   if (!product) {
     return next(new CustomError("Product not found", 404));
   }
+
   res.status(200).json(product);
 });

@@ -1,119 +1,84 @@
 import express from "express";
-import connectDb from "./config/db.js";
-import passport from "passport";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import hpp from "hpp";
-import mongoSatitize from "express-mongo-sanitize";
-import session from "express-session";
-import productRouter from "./router/productRouter.js";
+import mongoSanitize from "express-mongo-sanitize";
 import cors from "cors";
-import globalErrorHandler from "./middlewares/errorMiddleware.js";
-import authRouter from "./router/authRouter.js";
-import cartRouter from "./router/cartRouter.js";
+import session from "express-session";
 import { Server } from "socket.io";
 import http from "http";
+import connectDb from "./config/db.js";
 import "./config/passport.js";
-import User from "./models/user.js";
-const app = express();
-dotenv.config();
-app.use(cors());
+import globalErrorHandler from "./middlewares/errorMiddleware.js";
+import productRouter from "./router/productRouter.js";
+import authRouter from "./router/authRouter.js";
+import cartRouter from "./router/cartRouter.js";
+import socketHandler from "./socket/socketHandler.js";
+import passport from "passport";
 
+dotenv.config();
+
+// Express app initialization
+const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow all origins for simplicity
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
 
-// setup security headers
+// Middleware Setup
+app.use(cors());
 app.use(helmet());
-// body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(mongoSanitize()); // Prevent NoSQL injection
+app.use(hpp()); // Prevent HTTP Parameter Pollution
 
-// sanitize data for noSql atack
-app.use(mongoSatitize());
-// prevent parameter pollution
-app.use(hpp());
-
-// Middleware for session management
+// Session Setup
 app.use(
   session({
-    secret: process.env.SESSION_SECRET, // Replace with your session secret
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }, // Set to true if using HTTPS
+    cookie: { secure: false }, // Set to true for HTTPS
   })
 );
-// Initialize Passport
+
+// Passport Setup
 app.use(passport.initialize());
 app.use(passport.session());
 
-// endpoints
+// Routes Setup
 app.use("/products", productRouter);
 app.use("/auth", authRouter);
 app.use("/cart", cartRouter);
 
-// Socket.IO event listeners for adding/removing from wishlist
-io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
-
-  // Listen for adding a product to the wishlist
-  socket.on("wishlist-add", async ({ userId, productId }) => {
-    console.log('onserver',userId,productId);
-    try {
-      const user = await User.findById(userId);
-      if (!user.wishlist.includes(productId)) {
-        user.wishlist.push(productId);
-        await user.save();
-
-        // Emit updated wishlist to all connected clients
-        io.emit("wishlist-update", user.wishlist);
-      }
-    } catch (err) {
-      console.error("Error adding to wishlist:", err);
-    }
-  });
-
-  // Listen for removing a product from the wishlist
-  socket.on("wishlist-remove", async ({ userId, productId }) => {
-    try {
-      const user = await User.findById(userId);
-      user.wishlist = user.wishlist.filter((id) => id.toString() !== productId);
-      await user.save();
-
-      // Emit updated wishlist to all connected clients
-      io.emit("wishlist-update", user.wishlist);
-    } catch (err) {
-      console.error("Error removing from wishlist:", err);
-    }
-  });
-
-  // Handle disconnect
-  socket.on("disconnect", () => {
-    console.log("User disconnected");
-  });
-});
-
-// global error handler
+// Global Error Handling Middleware
 app.use(globalErrorHandler);
 
-// spining server
-const PORT = process.env.PORT || 8000;
-const MODE = process.env.NODE_ENV || "production";
+// Socket.IO Setup (Moved to separate handler)
+socketHandler(io);
 
-const start = async () => {
+// Start Server
+const startServer = async () => {
   try {
+    // Connect to Database
     await connectDb(process.env.MONGO_URI);
-    // starting server only if connection to mongoDB successfull
+
+    // Start Server
+    const PORT = process.env.PORT || 8000;
     server.listen(PORT, () => {
-      console.log(`Server is listening on Port ${PORT} in ${MODE} mode.`);
+      console.log(
+        `Server is listening on port ${PORT} in ${
+          process.env.NODE_ENV || "production"
+        } mode.`
+      );
     });
   } catch (error) {
-    console.log(`Aborting server due to some issue connecting to db`);
+    console.error("Database connection failed, server not started:", error);
   }
 };
 
-start();
+startServer();
