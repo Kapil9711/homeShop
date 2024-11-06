@@ -11,7 +11,7 @@ const cartSchema = new mongoose.Schema({
   qty: Number,
 });
 
-cartSchema.clearIndexes({ productId: 1 });
+cartSchema.indexes({ productId: 1 });
 
 const Cart = mongoose.model("Cart", cartSchema);
 

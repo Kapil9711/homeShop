@@ -18,6 +18,5 @@ export const getSingleProduct = catchAsyncError(async (req, res, next) => {
   if (!product) {
     return next(new CustomError("Product not found", 404));
   }
-
   res.status(200).json(product);
 });
