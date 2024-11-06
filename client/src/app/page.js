@@ -1,9 +1,10 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FaGoogle } from "react-icons/fa";
 import styles from "../styles/homePage.module.css";
 import ENDPOINT from "@/network/endpoint";
+import Loader from "@/components/Loader";
 
 const Home = () => {
   const searchParams = useSearchParams();
@@ -39,4 +40,10 @@ const Home = () => {
   );
 };
 
-export default Home;
+const PageWrapper = () => (
+  <Suspense fallback={<Loader />}>
+    <Home />
+  </Suspense>
+);
+
+export default PageWrapper;

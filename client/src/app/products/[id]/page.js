@@ -40,9 +40,7 @@ const ProductComponent = ({ id }) => {
   const [qty, setQty] = useState(1);
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
-  const [wishList, setWishlist] = useState(
-    JSON.parse(localStorage.getItem("wishList") || [])
-  );
+  const [wishList, setWishlist] = useState(null);
 
   useEffect(() => {
     const getData = async () => {
@@ -68,6 +66,11 @@ const ProductComponent = ({ id }) => {
         res("Added to WishList");
       } else res("Removed from WishList");
     });
+    setTimeout(() => {
+      if (localStorage.getItem("wishList")) {
+        setWishlist(JSON.parse(localStorage.getItem("wishList")));
+      }
+    }, 100);
 
     return () => socket.disconnect();
   }, []);
@@ -188,7 +191,7 @@ const ProductComponent = ({ id }) => {
                 <Button
                   style={{
                     marginLeft: "1rem",
-                    background: wishList.includes(product._id)
+                    background: wishList?.includes(product._id)
                       ? "orange"
                       : "blue",
                   }}
@@ -196,7 +199,7 @@ const ProductComponent = ({ id }) => {
                   type="button"
                   disabled={product.countInStock === 0}
                   onClick={
-                    wishList.includes(product._id)
+                    wishList?.includes(product._id)
                       ? handleRemoveProductFromWishlist
                       : handleAddProductToWishlist
                   }

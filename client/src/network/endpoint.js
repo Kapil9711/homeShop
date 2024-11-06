@@ -1,5 +1,6 @@
 import request from "./request.js";
-export let baseUrl = "http://localhost:8000";
+
+export let baseUrl = "https://homeshop-9e2j.onrender.com";
 
 const ENDPOINT = {
   LOGIN: `${baseUrl}/auth/google`,
@@ -12,7 +13,6 @@ const ENDPOINT = {
 // create Cart
 export const uploadCartInfo = async (body) => {
   const config = { method: "POST", url: ENDPOINT.CREATECART, body };
-  console.log(config);
   const data = await request(config);
   return data;
 };
@@ -21,6 +21,13 @@ export const uploadCartInfo = async (body) => {
 export const deleteCartInfo = async (body) => {
   const config = { method: "DELETE", url: ENDPOINT.DELETECART, body };
   const data = await request(config);
+  return data;
+};
+
+// get products
+export const getAllProducts = async () => {
+  const config = { method: "GET", url: ENDPOINT.GETPRODUCTS };
+  const { data } = await request(config);
   return data;
 };
 

@@ -1,49 +1,35 @@
+"use client";
 import { Row, Col } from "react-bootstrap";
 import Product from "../../components/Product";
 import Loading from "./loading";
 import Error from "./error";
 import PrivateRoute from "@/components/PrivateRoute";
-
-async function fetchData() {
-  try {
-    const res = await fetch("http://localhost:8000/api/products", {
-      next: { revalidate: 60 }, // Optional: Revalidate every 60 seconds (ISR)
-    });
-
-    if (!res.ok) {
-      throw new Error("Failed to fetch data");
-    }
-
-    return await res.json();
-  } catch (error) {
-    throw new Error("Error fetching data: " + error.message);
-  }
-}
+import { baseUrl, getAllProducts } from "@/network/endpoint";
+import { useEffect, useState } from "react";
 
 const HomeScreen = async () => {
-  let products;
-  let error;
-
-  try {
-    products = await fetchData();
-  } catch (err) {
-    error = err.message;
-  }
   return (
     <PrivateRoute>
-      <HomeComponent products={products} error={error} />
+      <HomeComponent />
     </PrivateRoute>
   );
 };
 
-const HomeComponent = ({ products, error }) => {
-  if (!products && !error) {
+const HomeComponent = () => {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const getProducts = async () => {
+      const data = await getAllProducts();
+      setProducts(data);
+    };
+    getProducts();
+  }, []);
+
+  if (!products) {
     return <Loading />;
   }
 
-  if (error) {
-    return <Error message={error} />;
-  }
   return (
     <>
       <h1>Latest Products</h1>
