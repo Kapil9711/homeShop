@@ -2,6 +2,7 @@ import { Row, Col } from "react-bootstrap";
 import Product from "../../components/Product";
 import Loading from "./loading";
 import Error from "./error";
+import PrivateRoute from "@/components/PrivateRoute";
 
 async function fetchData() {
   try {
@@ -28,8 +29,14 @@ const HomeScreen = async () => {
   } catch (err) {
     error = err.message;
   }
+  return (
+    <PrivateRoute>
+      <HomeComponent products={products} error={error} />
+    </PrivateRoute>
+  );
+};
 
-  // Loading state will be handled automatically for async fetching
+const HomeComponent = ({ products, error }) => {
   if (!products && !error) {
     return <Loading />;
   }

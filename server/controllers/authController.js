@@ -9,19 +9,18 @@ export const handleCallBack = catchAsyncError(async (req, res) => {
   );
   // Send token back to the client
   res.redirect(
-    `http://localhost:3000?token=${token}&user=${encodeURIComponent(
+    `${process.env.REDIRECT_URL}?token=${token}&user=${encodeURIComponent(
       JSON.stringify(req.user)
     )}`
   );
 });
 
+// handling logout
 export const handleLogout = catchAsyncError(async (req, res) => {
   req.logout((err) => {
     if (err) {
       return next(err);
     }
-    // Redirect to Google logout
-    const googleLogoutUrl = "https://accounts.google.com/Logout";
-    res.redirect(googleLogoutUrl); // Redirecting to Google logout page
+    res.status(200).json({ message: "Logout Successfull" });
   });
 });

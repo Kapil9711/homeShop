@@ -23,10 +23,9 @@ const Home = () => {
       // Store the JWT token and user info in localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("user", user);
-      // Redirect to /products page
       router.push("/products");
     }
-  }, [searchParams, router]); // Depend on searchParams and router for effect triggers
+  }, []);
   return (
     <div className={styles.homeContainer}>
       <h1>Welcome to the HomeShop</h1>
